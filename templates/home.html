@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}My Personal Library{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <h1 class="heading">Welcome to my library</h1>
+  <p class="description">These are all the books that have captured my attention... and my heart. Some are good,
+      others are really good, and a few.....well all I can say for those is, "We listen, we don't judge"</p>
+
+{% for book in all_books %}
+  <div class="card" >
+    <div class="front" style="background-image: url('{{book.cover_image}}');">
+    </div>
+    <div class="back">
+      <div>
+    <div class="title">{{book.title}}
+        <span class="release_date">({{book.year}})</span>
+    </div>
+        <div class="rating">
+            <label>{{book.rating}}</label>
+          <i class="fas fa-star star"></i>
+        </div>
+          <p class="review">"{{book.synopsis}"</p>
+        <p class="overview">
+            {{book.personal_notes}}
+<!--            Move the personal notes to the book view section.-->
+        </p>
+
+        <a href="{{ url_for('edit', book_id=book.id) }}" class="button">Update</a>
+        <a href="{{ url_for('delete', book_id=book.id) }}" class="button delete-button">Delete</a>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+<div class="container text-center add">
+<a href="{{ url_for('add_book') }}" class="button">Add New Book</a>
+</div>
+
+{% endblock %}

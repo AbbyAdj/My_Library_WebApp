@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}My Personal Library{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <h1 class="heading">Welcome to my library</h1>
+  <p class="description">These are all the books that have captured my attention. Some are good, others are really good,
+      and a few.....well all I can say for those is, "We listen, we don't judge"</p>
+</div>
+
+<form action="{{url_for(home}}" method="post">
+    <button type="submit" name="button" value="completed" class="btn btn-primary">COMPLETED BOOKS</button>
+    <button type="submit" name="button" value="ongoing" class="btn btn-primary">ONGOING BOOKS</button>
+    <button type="submit" name="button" value="no_comment" class="btn btn-primary">WE WILL NEVER SPEAK OF THESE AGAIN</button>
+    <button type="submit" name="button" value="all_books" class="btn btn-primary">SHOW ME ALL BOOKS</button>
+</form>
+
+{% endblock %}

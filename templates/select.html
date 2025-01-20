@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Book{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="heading">Select Book</h1>
+    {% for book in all_books %}
+  <p>
+    <a href="{{ url_for('add_to_database', volume_id=book['id']) }}"> {{book["title"]}} written by {{book["authors"]}}</a>
+  </p>
+    {% endfor %}
+
+</div>
+{% endblock %}
