@@ -7,35 +7,34 @@
 <div class="container">
   <h1 class="heading">Welcome to my library</h1>
   <p class="description">These are all the books that have captured my attention... and my heart. Some are good,
-      others are really good, and a few.....well all I can say for those is, "We listen, we don't judge"</p>
-
-{% for book in all_books %}
-  <div class="card" >
-    <div class="front" style="background-image: url('{{book.cover_image}}');">
-    </div>
-    <div class="back">
-      <div>
-    <div class="title">{{book.title}}
-        <span class="release_date">({{book.year}})</span>
-    </div>
-        <div class="rating">
-            <label>{{book.rating}}</label>
-          <i class="fas fa-star star"></i>
-        </div>
-          <p class="review">"{{book.synopsis}"</p>
-        <p class="overview">
-            {{book.personal_notes}}
-<!--            Move the personal notes to the book view section.-->
-        </p>
-
-        <a href="{{ url_for('edit', book_id=book.id) }}" class="button">Update</a>
-        <a href="{{ url_for('delete', book_id=book.id) }}" class="button delete-button">Delete</a>
-
-      </div>
-    </div>
-  </div>
+      others are really good, and a few.....well all I can say for those is, "We listen, we don't judge. Depending on
+      which option you chose, you can enjoy your fill, or well suffer the consequences."</p>
 </div>
-{% endfor %}
+
+<div class="container row-cols-4">
+    {% for book in all_books %}
+    <div class =  "col">
+        <div class="card mb-3">
+            <h3 class="card-header">{{book.title}}</h3>
+            <div class="card-body">
+                <h4 class="card-title">Written by {{book.author}}</h4>
+            </div>
+            <img src="{{book.cover_image}}" class="d-block user-select-none" width="100%" height="200" alt="{{book.title}} book cover image">
+            <div class="card-body">
+                <p class="card-text">{{card.synopsis}}</p>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('view_book', book_id=book.id) }}" class="card-link">View Book</a>
+                <a href="{{ url_for('edit', book_id=book.id) }}" class="card-link">Update Details</a>
+                <a href="{{ url_for('delete', book_id=book.id) }}" class="card-link">Delete Book</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+
 <div class="container text-center add">
 <a href="{{ url_for('add_book') }}" class="button">Add New Book</a>
 </div>

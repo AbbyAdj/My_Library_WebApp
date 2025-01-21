@@ -10,8 +10,6 @@ import requests, dotenv, os
 
 dotenv.load_dotenv()
 
-# changes deletes this comment
-
 # VARIABLES
 GOOGLE_BOOKS_API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY")
 
@@ -51,10 +49,10 @@ class Books(db.Model):
 
 class EditBookForm(FlaskForm):
     title = StringField("What is the book title?")
-    # TODO: Create separate table for books with multiple authors.
+    # TODO: Create separate table for books with multiple authors. Books with single authors must be used for now.
     author = StringField("Who wrote the book?")
     isbn = IntegerField("What is the ISBN number?")
-    # TODO: Use single genres for now, and find a way to add multiple genres to your database.
+    # TODO: Use single genres for now, multiple genres will be added and referenced using another table
     # TODO: Change genre to a drop down select
     genre = StringField("What is the book Genre (Only type the main genre)", validators=[DataRequired()])
     completed = BooleanField("Are you done with the book?", validators=[DataRequired()])
@@ -71,12 +69,14 @@ class EditBookForm(FlaskForm):
 class AddNewBookForm(FlaskForm):
     author = StringField("Author Name", validators=[DataRequired()])
     title = StringField("Book Title", validators=[DataRequired()])
+    add = SubmitField("Add Book")
+    cancel = SubmitField("Cancel")
 
 # ROUTES
 # The TODOs below are for when the program is up and running.
 # TODO: When you click on a book, it can take you to the ebook.
 # TODO: Separate all methods into their respective files.
-# TODO: Create a .env file and use os to get the environment variables.
+# TODO: Create different tables for the multiple authors and genres
 
 
 @app.route("/welcome", methods=["GET", "POST"])
@@ -98,22 +98,30 @@ def welcome():
 
 @app.route("/home")
 def home():
-    all_books = request.args.get("books")
+    all_books_request = request.args.get("books")
+    if all_books_request:
+        all_books = all_books_request
+    else:
+        all_books = get_all_books("alphabetically")
     return render_template("home.html", all_books=all_books)
 
 @app.route("/add")
 def add_book():
     form = AddNewBookForm()
     if form.validate_on_submit():
-        title = form.title.data
-        author = form.author.data
-        query = {"intitle": title,
-                 "inauthor": author}
-        return redirect(url_for("select_book", query=query))
+        if form.add.data:
+            title = form.title.data
+            author = form.author.data
+            query = {"intitle": title,
+                     "inauthor": author}
+            return redirect(url_for("select_book", query=query))
+        if form.cancel.data:
+            return redirect(url_for("welcome"))
     return render_template("add.html", form=form)
 
 @app.route("/select_book")
 def select_book():
+    """Select which book you'd like added to the database."""
     query = request.args.get("query")
     VOLUME_FIND_URL = f"https://www.googleapis.com/books/v1/volumes?q={query}&key={GOOGLE_BOOKS_API_KEY}"
     try:
@@ -153,11 +161,15 @@ def add_to_database():
 def edit():
     form = EditBookForm()
     book_id = request.args.get("book_id")
+    book_to_edit = db.session.execute(db.select(Books).where(Books.id == book_id)).scalar()
     if form.validate_on_submit():
-        new_data = {field.name: field.data for field in form if form.data}
-        edit_book(book_id=book_id, new_data=new_data)
-        return redirect(url_for("welcome"))
-    return render_template("edit.html", form=form)
+        if form.submit.data:
+            new_data = {field.name: field.data for field in form if form.data}
+            edit_book(book_id=book_id, new_data=new_data)
+            return redirect(url_for("welcome"))
+        elif form.cancel.data:
+            return redirect(url_for("welcome"))
+    return render_template("edit.html", form=form, book_to_edit=book_to_edit)
 
 @app.route("/delete")
 def delete():
@@ -170,6 +182,11 @@ def delete():
 @app.route("/view_book/<book_name>")
 def view_book(book_name):
     # return render_template("view_book.html")
+    pass
+
+@app.route("/search")
+def search():
+    # Think about only getting the data from base.html. Research more on this.
     pass
 
 # NON-ROUTE METHODS
@@ -228,7 +245,6 @@ def edit_book(book_id, new_data: dict):
     for field in new_data:
         book_to_edit[field.name] = new_data[field.name]
     db.session.commit()
-
 
 if __name__ == '__main__':
     with app.app_context():
