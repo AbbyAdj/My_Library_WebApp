@@ -15,12 +15,12 @@ GOOGLE_BOOKS_API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY")
 
 # FLASK APP CREATION AND BOOTSTRAP INTEGRATION
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'SECRET KEY (NEED TO CHANGE)'
+app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY")
 bootstrap = Bootstrap5(app)
 app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'journal'
 
 # DATABASE CREATION
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///movies.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///my_books.db"
 # engine = create_engine('sqlite:///example.db', pool_size=5, max_overflow=10, pool_timeout=30)
 db = SQLAlchemy(app)
 
@@ -30,7 +30,7 @@ class Books(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
     author = db.Column(db.String, nullable=False)
-    isbn = db.Column(db.Integer, nullable=True, unique=True)
+    isbn = db.Column(db.Integer, nullable=True)
     genre = db.Column(db.String, nullable=True) # you might need to create a separate table for this later on
     completed = db.Column(db.String, nullable=True)
     given_up = db.Column(db.Boolean, nullable=True)
@@ -43,7 +43,7 @@ class Books(db.Model):
     personal_notes = db.Column(db.Text, nullable=True)
 
     def __repr__(self):
-        return f"<{Books.id}: {Books.title} written by {Books.author}>"
+        return f"<{self.id}: {self.title} written by {self.author}>"
 
 # FORMS CREATION
 
@@ -55,9 +55,9 @@ class EditBookForm(FlaskForm):
     # TODO: Use single genres for now, multiple genres will be added and referenced using another table
     # TODO: Change genre to a drop down select
     genre = StringField("What is the book Genre (Only type the main genre)", validators=[DataRequired()])
-    completed = BooleanField("Are you done with the book?", validators=[DataRequired()])
-    given_up = BooleanField("Do you actually plan on completing this books?", validators=[DataRequired()])
-    year_finished = IntegerField("What year did you finish the book?", validators=[Length(max=4)])
+    completed = BooleanField("Are you done with the book?")
+    given_up = BooleanField("Do you actually plan on completing this book?")
+    year_finished = IntegerField("What year did you finish the book?")
     rating = FloatField("What is your rating?", validators=[DataRequired()])
     number_of_pages = IntegerField("How many pages are in the book?")
     # TODO:cover image was left out on purpose. You might need to upload the image
@@ -67,8 +67,8 @@ class EditBookForm(FlaskForm):
     cancel = SubmitField("Cancel")
 
 class AddNewBookForm(FlaskForm):
-    author = StringField("Author Name", validators=[DataRequired()])
     title = StringField("Book Title", validators=[DataRequired()])
+    author = StringField("Author Name")
     add = SubmitField("Add Book")
     cancel = SubmitField("Cancel")
 
@@ -79,10 +79,10 @@ class AddNewBookForm(FlaskForm):
 # TODO: Create different tables for the multiple authors and genres
 
 
-@app.route("/welcome", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def welcome():
-    # TODO: Books need to be shown on homepage by completed, ongoing, and books I'll never finish cause
-    #  they suck (given_up column)
+    # TODO: Sorted by their ratings, show the top 3 or 4 books on the homepage before the buttons.
+
     if request.method == "POST":
         button_pressed = request.form["button"]
         if button_pressed == "completed":
@@ -91,6 +91,8 @@ def welcome():
             books = get_ongoing_books()
         elif button_pressed == "no_comment":
             books = get_disliked_books()
+        elif button_pressed == "all_books":
+            books = get_all_books()
         else:
             return redirect(url_for("welcome"))
         return redirect(url_for("home", books=books))
@@ -102,12 +104,13 @@ def home():
     if all_books_request:
         all_books = all_books_request
     else:
-        all_books = get_all_books("alphabetically")
+        all_books = get_all_books()
     return render_template("home.html", all_books=all_books)
 
-@app.route("/add")
+@app.route("/add", methods=["GET", "POST"])
 def add_book():
     form = AddNewBookForm()
+    redirected = request.args.get("redirected")
     if form.validate_on_submit():
         if form.add.data:
             title = form.title.data
@@ -117,19 +120,23 @@ def add_book():
             return redirect(url_for("select_book", query=query))
         if form.cancel.data:
             return redirect(url_for("welcome"))
-    return render_template("add.html", form=form)
+    return render_template("add.html", form=form, redirected=redirected)
 
 @app.route("/select_book")
 def select_book():
     """Select which book you'd like added to the database."""
+    # TODO: Find a way to incorporate books later. Use this tag:
+    #  <img src="{{book['imageLinks']['medium']}}" class="d-block user-select-none" width="100%" height="200" alt="{{book.title}} book cover image">
     query = request.args.get("query")
     VOLUME_FIND_URL = f"https://www.googleapis.com/books/v1/volumes?q={query}&key={GOOGLE_BOOKS_API_KEY}"
     try:
         response = requests.get(url=VOLUME_FIND_URL)
+        response.raise_for_status()
     except requests.exceptions.RequestException as error:
         # TODO: Create a custom error page that the user will be redirected to. They will have the option to go back to
         #  the home page from that error page.
         pass
+
     else:
         results = response.json()
         all_books = results["items"]
@@ -138,33 +145,42 @@ def select_book():
 @app.route("/add_to_database")
 def add_to_database():
     volume_id = request.args.get("volume_id")[1:]
-    BOOK_DETAILS_URL = f"https://www.googleapis.com/books/v1/volumes/{volume_id}?key={GOOGLE_BOOKS_API_KEY}"
+    # TODO: Rewrite code. The link to the book can be found in the json for the volume api
+    BOOK_DETAILS_URL = f"https://www.googleapis.com/books/v1/volumes/{volume_id}"
     try:
         response = requests.get(BOOK_DETAILS_URL)
-    except requests.exceptions.RequestException as error:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as error:
         # TODO: Create a custom error page that the user will be redirected to. They will have the option to go back to
         #  the home page from that error page.
-        pass
+        if response.status_code:
+            print(response.json())
+            redirected = True
+            return redirect(url_for("add_book", redirected=redirected))
     else:
         results = response.json()
+        print(results)
         book_fields = {"title": results["volumeInfo"]["title"],
                        "author": results["volumeInfo"]["authors"][0],
-                       "isbn": results["industryIdentifiers"][1]["identifier"],
-                       "number_of_pages": results["pageCount"],
-                       "cover_image": results["imageLinks"]["medium"],
-                       "synopsis": results["description"]
+                       "isbn": results["volumeInfo"]["industryIdentifiers"][1]["identifier"],
+                       "number_of_pages": results["volumeInfo"]["pageCount"],
+                       "cover_image": results["volumeInfo"]["imageLinks"]["medium"],
+                       "synopsis": results["volumeInfo"]["description"]
                        }
         book_id = add_new_book(book_fields=book_fields)
-        return redirect(url_for("edit.html", book_id=book_id))
+        return redirect(url_for("edit", book_id=book_id))
 
-@app.route("/edit")
+@app.route("/edit", methods=["GET", "POST"])
 def edit():
-    form = EditBookForm()
     book_id = request.args.get("book_id")
+    book = db.session.execute(db.select(Books).where(Books.id == book_id)).scalar()
+    print(book)
+    form = EditBookForm(obj=book)
     book_to_edit = db.session.execute(db.select(Books).where(Books.id == book_id)).scalar()
     if form.validate_on_submit():
         if form.submit.data:
             new_data = {field.name: field.data for field in form if form.data}
+            print(new_data)
             edit_book(book_id=book_id, new_data=new_data)
             return redirect(url_for("welcome"))
         elif form.cancel.data:
@@ -179,38 +195,34 @@ def delete():
     delete_book(book_id=book_id)
     return redirect(url_for("home"))
 
-@app.route("/view_book/<book_name>")
-def view_book(book_name):
-    # return render_template("view_book.html")
-    pass
+@app.route("/view_book/")
+def view_book():
+    return "<h1>This page is not ready</h1>"
 
 @app.route("/search")
 def search():
     # Think about only getting the data from base.html. Research more on this.
-    pass
+    return "<h1>This page is not ready</h1>"
 
 # NON-ROUTE METHODS
 
-def get_all_books(order):
-    result = db.session.execute(db.select(Books).order_by(Books.id))
-    if order == "alphabetically":
-        result = db.session.execute(db.select(Books).order_by(Books.title))
-    all_books = result.scalars()
+def get_all_books():
+    all_books = db.session.execute(db.select(Books).order_by(Books.id)).scalars()
     return all_books
 
 def get_completed_books():
     # Completed column = True
-    completed_books = db.session.execute(db.select(Books).where(Books.completed == "True")).scalars()
+    completed_books = db.session.execute(db.select(Books).where(Books.completed == 1)).scalars().all()
     return completed_books
 
 def get_ongoing_books():
     # Completed column = False, 1
-    ongoing_books = db.session.execute(db.select(Books).where(Books.completed == "False")).scalars()
+    ongoing_books = db.session.execute(db.select(Books).where(Books.completed == 0)).scalars().all()
     return ongoing_books
 
 def get_disliked_books():
     # Given_up column = True
-    disliked_books = db.session.execute(db.select(Books).where(Books.given_up == "True")).scalars()
+    disliked_books = db.session.execute(db.select(Books).where(Books.given_up == 1)).scalars().all()
     return disliked_books
 
 def add_new_book(book_fields):
@@ -226,7 +238,7 @@ def add_new_book(book_fields):
         author = author,
         isbn = isbn,
         number_of_pages = number_of_pages,
-        cover_page = cover_image,
+        cover_image = cover_image,
         synopsis = synopsis
     )
     db.session.add(new_book)
@@ -243,7 +255,7 @@ def delete_book(book_id):
 def edit_book(book_id, new_data: dict):
     book_to_edit = db.session.execute(db.select(Books).where(Books.id == book_id)).scalar()
     for field in new_data:
-        book_to_edit[field.name] = new_data[field.name]
+        setattr(book_to_edit, field, new_data[field])
     db.session.commit()
 
 if __name__ == '__main__':
