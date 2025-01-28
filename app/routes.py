@@ -1,12 +1,15 @@
 import os
-from flask import request, render_template, url_for, redirect, current_app
+from flask import request, render_template, url_for, redirect, Blueprint
 import requests
 
-from . import main
-from methods import *
-from forms import *
+
+from .methods import *
+from .forms import *
 
 # TODO: When you click on a book, it should take you to the ebook.
+
+main = Blueprint("main", __name__)
+
 
 @main.route("/", methods=["GET", "POST"])
 def welcome():
@@ -23,10 +26,8 @@ def welcome():
         elif button_pressed == "all_books":
             books = get_all_books()
         else:
-            return redirect(url_for("welcome"))
-        return redirect(url_for("home", books=books))
-    path = current_app.jinja_loader.searchpath[0]
-    print(f"template path: {path}")
+            return redirect(url_for("main.welcome"))
+        return redirect(url_for("main.home", books=books))
     return render_template("index.html")
 
 @main.route("/home")
@@ -40,18 +41,38 @@ def home():
 
 @main.route("/add", methods=["GET", "POST"])
 def add_book():
+    # TODO: Since the google API is acting weird, add another button for the user to add the books themselves.
+    #       They don't need to have all the fields, just the important ones. Create a new form for this.
+    #       They might need to upload image files though.
     form = AddNewBookForm()
     redirected = request.args.get("redirected")
+    if form.user_add.data:
+        return redirect(url_for("main.user_add_book"))
+    if form.cancel.data:
+        return redirect(url_for("main.welcome"))
     if form.validate_on_submit():
-        if form.add.data:
+        if form.api_add.data:
             title = form.title.data
             author = form.author.data
             query = {"intitle": title,
                      "inauthor": author}
-            return redirect(url_for("select_book", query=query))
-        if form.cancel.data:
-            return redirect(url_for("welcome"))
+            return redirect(url_for("main.select_book", query=query))
+
     return render_template("add.html", form=form, redirected=redirected)
+
+@main.route("/input", methods=["GET", "POST"])
+def user_add_book():
+    edit_true = False
+    form = EditBookForm()
+    if form.validate_on_submit():
+        if form.submit.data:
+            new_data = {field.name: field.data for field in form if form.data}
+            print(new_data)
+            add_new_book(new_data, user_added=True)
+            return redirect(url_for("main.welcome"))
+        elif form.cancel.data:
+            return redirect(url_for("main.welcome"))
+    return render_template("edit.html", form=form, edit_true=edit_true)
 
 @main.route("/select_book")
 def select_book():
@@ -88,7 +109,7 @@ def add_to_database():
         if response.status_code:
             print(response.json())
             redirected = True
-            return redirect(url_for("add_book", redirected=redirected))
+            return redirect(url_for("main.add_book", redirected=redirected))
     else:
         results = response.json()
         print(results)
@@ -100,10 +121,11 @@ def add_to_database():
                        "synopsis": results["volumeInfo"]["description"]
                        }
         book_id = add_new_book(book_fields=book_fields)
-        return redirect(url_for("edit", book_id=book_id))
+        return redirect(url_for("main.edit", book_id=book_id))
 
 @main.route("/edit", methods=["GET", "POST"])
 def edit():
+    edit_true = True
     book_id = request.args.get("book_id")
     book = db.session.execute(db.select(Books).where(Books.id == book_id)).scalar()
     print(book)
@@ -114,10 +136,10 @@ def edit():
             new_data = {field.name: field.data for field in form if form.data}
             print(new_data)
             edit_book(book_id=book_id, new_data=new_data)
-            return redirect(url_for("welcome"))
+            return redirect(url_for("main.welcome"))
         elif form.cancel.data:
-            return redirect(url_for("welcome"))
-    return render_template("edit.html", form=form, book_to_edit=book_to_edit)
+            return redirect(url_for("main.welcome"))
+    return render_template("edit.html", form=form, book_to_edit=book_to_edit, edit_true=edit_true)
 
 @main.route("/delete")
 def delete():
@@ -125,7 +147,7 @@ def delete():
     # TODO: Do not actually delete the record, figure out a better way to deal with this.
     book_id = request.args.get("book_id")
     delete_book(book_id=book_id)
-    return redirect(url_for("home"))
+    return redirect(url_for("main.home"))
 
 @main.route("/view_book/")
 def view_book():

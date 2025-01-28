@@ -5,8 +5,14 @@
 
 {% block content %}
 <div class="content">
+  {% if edit_true %}
   <h1 class="heading">Edit {{ book_to_edit.title }}</h1>
-    <p class="description">Which fields would you like to change?</p>
+  <p class="description">Which fields would you like to change?</p>
+  {% else %}
+  <h1 class="heading">Input New Book Details</h1>
+  <p class="description">Please fill in the fields</p>
+  {% endif %}
+
 <!--    think about adding the current data for the fields so the user knows what to expect-->
     {{ render_form(form, novalidate=True) }}
   </div>
