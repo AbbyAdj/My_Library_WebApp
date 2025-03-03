@@ -12,19 +12,18 @@
 </div>
 
 <div class="container row-cols-4 ">
-    {% for book in books %}
-
-    <a href="{{ url_for('main.view_book') }}">
+    {% for book in all_books %}
+    <a href="{{ url_for('view_book') }}">
     <div class = "col">
         <div class="card mb-3">
             <img src="{{book.cover_image}}" class="d-block user-select-none" width="100%" height="400" alt="{{book.title}} book cover image">
             <div class="card-body">
-                <p class="card-text">{{book.title}}</p>
+                <p class="card-text">MOVED BOOK SYNOPSIS TO THE VIEW BOOK ROUTE</p>
             </div>
             <div class="card-body row" style="align: center">
-                <div class="col"><a href="{{ url_for('main.view_book') }}" class="card-link">View Book</a></div>
-                <div class="col"><a href="{{ url_for('main.edit', book_id=book.id) }}" class="card-link">Update Details</a></div>
-                <div class="col"><a href="{{ url_for('main.delete', book_id=book.id) }}" class="card-link">Delete Book</a></div>
+                <div class="col"><a href="{{ url_for('view_book') }}" class="card-link">View Book</a></div>
+                <div class="col"><a href="{{ url_for('edit', book_id=book.id) }}" class="card-link">Update Details</a></div>
+                <div class="col"><a href="{{ url_for('delete', book_id=book.id) }}" class="card-link">Delete Book</a></div>
             </div>
         </div>
     </div>
@@ -35,7 +34,7 @@
 
 
 <div class="container text-center add">
-<a href="{{ url_for('main.add_book') }}" class="button">Add New Book</a>
+<a href="{{ url_for('add_book') }}" class="button">Add New Book</a>
 </div>
 
 {% endblock %}

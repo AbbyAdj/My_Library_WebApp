@@ -20,6 +20,7 @@ class EditBookForm(FlaskForm):
     rating = FloatField("What is your rating?", default=0)
     number_of_pages = IntegerField("How many pages are in the book?", default=0)
     # TODO:cover image was left out on purpose. You might need to upload the image
+    cover_image = StringField("Enter the image url", default="https://picsum.photos/200")
     synopsis = StringField("What is this book about?")
     personal_notes = StringField("Let out all your thoughts below......")
     submit = SubmitField("Submit Changes")

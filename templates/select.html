@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Book{% endblock %}
+
+{% block content %}
+<div class="container card-flex row-cols-4">
+    <h1 class="heading">Select Book</h1>
+    {% for book in all_books %}
+    <a href="{{ url_for('add_to_database', volume_id=book['id']) }}">
+        <div class="card text-white bg-primary mb-3" style="max-width: 20rem;">
+            <div class="card-header">PUT BOOK COVER IMAGE</div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ book["volumeInfo"]["title"] }}</h4>
+                    <p class="card-text">{{ " ".join(book["volumeInfo"]["authors"]) }}</p>
+                </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

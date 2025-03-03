@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% from 'bootstrap5/form.html' import render_form %}
+
+{% block title %}Edit Book{% endblock %}
+
+{% block content %}
+<div class="content">
+  <h1 class="heading">Edit {{ book_to_edit.title }}</h1>
+    <p class="description">Which fields would you like to change?</p>
+<!--    think about adding the current data for the fields so the user knows what to expect-->
+    {{ render_form(form, novalidate=True) }}
+  </div>
+{% endblock %}

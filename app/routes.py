@@ -11,33 +11,28 @@ from .forms import *
 main = Blueprint("main", __name__)
 
 
-@main.route("/", methods=["GET", "POST"])
+@main.route("/", methods=["GET"])
 def welcome():
-    # TODO: Sorted by their ratings, show the top 3 or 4 books on the homepage before the buttons.
+    # TODO: Sorted by their ratings, show the top 3 or 4 books on the homepage before the buttons
 
-    if request.method == "POST":
-        button_pressed = request.form["button"]
-        if button_pressed == "completed":
-            books = get_completed_books()
-        elif button_pressed == "ongoing":
-            books = get_ongoing_books()
-        elif button_pressed == "no_comment":
-            books = get_disliked_books()
-        elif button_pressed == "all_books":
-            books = get_all_books()
-        else:
-            return redirect(url_for("main.welcome"))
-        return redirect(url_for("main.home", books=books))
     return render_template("index.html")
 
-@main.route("/home")
+@main.route("/home/")
 def home():
-    all_books_request = request.args.get("books")
-    if all_books_request:
-        all_books = all_books_request
-    else:
-        all_books = get_all_books()
-    return render_template("home.html", all_books=all_books)
+    button_pressed = request.args.get("button")
+    books = []
+    if button_pressed == "completed":
+        books = get_completed_books()
+    elif button_pressed == "ongoing":
+        books = get_ongoing_books()
+    elif button_pressed == "no_comment":
+        books = get_disliked_books()
+    elif button_pressed == "all_books":
+        books = get_all_books()
+    # else:
+    #     return redirect(url_for("main.welcome"))
+    return render_template("home.html", books=books)
+    # return "Hi"
 
 @main.route("/add", methods=["GET", "POST"])
 def add_book():
@@ -71,6 +66,7 @@ def user_add_book():
             add_new_book(new_data, user_added=True)
             return redirect(url_for("main.welcome"))
         elif form.cancel.data:
+            # Add flash
             return redirect(url_for("main.welcome"))
     return render_template("edit.html", form=form, edit_true=edit_true)
 

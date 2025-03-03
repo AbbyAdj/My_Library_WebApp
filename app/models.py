@@ -11,7 +11,8 @@ class Books(db.Model):
     author = db.Column(db.String, nullable=False)
     isbn = db.Column(db.String, nullable=True)
     genre = db.Column(db.String, nullable=True)  # you might need to create a separate table for this later on
-    completed = db.Column(db.String, nullable=True)
+    # TODO: Set up migrations and change completed to boolean. Change the sql queries to reflect this.
+    completed = db.Column(db.Boolean, nullable=True)
     given_up = db.Column(db.Boolean, nullable=True)
     year_finished = db.Column(db.String, nullable=True)  #Can be left null if book hasn't been completed
     rating = db.Column(db.Float, nullable=True)  #out of 5 stars

@@ -2,40 +2,29 @@ from .models import Books
 from . import db
 
 def get_all_books():
-    all_books = db.session.execute(db.select(Books).order_by(Books.id)).scalars()
+    all_books = db.session.execute(db.select(Books).order_by(Books.id)).scalars().all()
     return all_books
 
 def get_completed_books():
-    # Completed column = True
     completed_books = db.session.execute(db.select(Books).where(Books.completed == 1)).scalars().all()
     return completed_books
 
 def get_ongoing_books():
-    # Completed column = False, 1
-    ongoing_books = db.session.execute(db.select(Books).where(Books.completed == 0)).scalars().all()
+    # Completed column = False, 0
+    ongoing_books = db.session.execute(db.select(Books).where(Books.completed == False)).scalars().all()
     return ongoing_books
 
 def get_disliked_books():
     # Given_up column = True
-    disliked_books = db.session.execute(db.select(Books).where(Books.given_up == 1)).scalars().all()
+    disliked_books = db.session.execute(db.select(Books).where(Books.given_up == True)).scalars().all()
     return disliked_books
 
 def add_new_book(book_fields: dict, user_added=False):
     # Not all fields are added as some are not available with the google books api. These can be added by the user.
     if user_added:
-        values = []
-        # values = [value for key,value in book_fields.items()]
-        for key, value in book_fields.items():
-            # print(value)
-            if value is True:
-                value = 1
-            elif value is False:
-                value  = 0
-
-            values.append(str(value))
-        record = ",".join(values)
-        print(record)
-        new_book = Books(record)
+        new_book = Books()
+        for field in book_fields.keys():
+            setattr(new_book, field, book_fields[field])
     else:
         title = book_fields["title"]
         author = book_fields["author"]
