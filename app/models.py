@@ -22,5 +22,8 @@ class Books(db.Model):
     synopsis = db.Column(db.Text, nullable=True)
     personal_notes = db.Column(db.Text, nullable=True)
 
-    def __repr__(self):
+
+
+
+    def __str__(self):
         return f"<{self.id}: {self.title} written by {self.author}>"
