@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}My Personal Library{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <h1 align="center" style="margin-top: 20px; margin-bottom: 20px">Welcome to my library</h1>
+  <p align="center" style="margin-bottom: 30px">These are all the books that have captured my attention... and my heart. Some are good,
+      others are really good, and a few.....well all I can say for those is, "We listen, we don't judge. Depending on
+      which option you chose, you can enjoy your fill, or well suffer the consequences."</p>
+</div>
+
+<figure style="margin-bottom: 70px">
+  <blockquote class="blockquote">
+    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+
+  </blockquote>
+  <figcaption class="blockquote-footer">
+    Someone famous in <cite title="Source Title">Source Title</cite>
+  </figcaption>x
+</figure>
+
+<div align="center ">
+    <form action="{{url_for('main.home')}}" method="GET">
+        <div class="row" style="margin: 30px">
+            <div class="col-4"><button type="submit" name="button" value="completed" class="btn btn-primary" style="width: 400px">COMPLETED BOOKS</button></div>
+            <div class="col-4"><button type="submit" name="button" value="ongoing" class="btn btn-primary" style="width: 400px">ONGOING BOOKS</button></div>
+            <div class="col-4"><button type="submit" name="button" value="no_comment" class="btn btn-primary" style="width: 400px">WE WILL NEVER SPEAK OF THESE AGAIN</button></div>
+
+        </div>
+        <button type="submit" name="button" value="all_books" class="btn btn-primary btn-lg col-6">SHOW ME ALL BOOKS</button>
+    </form>
+</div>
+
+{% endblock %}
