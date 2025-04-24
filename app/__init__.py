@@ -1,4 +1,3 @@
-import os
 from flask import Flask, Blueprint
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
