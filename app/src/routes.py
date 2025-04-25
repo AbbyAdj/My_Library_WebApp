@@ -3,7 +3,7 @@ from flask import request, render_template, url_for, redirect, Blueprint
 import requests
 
 
-from .methods import *
+from .utils.methods import *
 from .forms import *
 
 # TODO: When you click on a book, it should take you to the ebook.

@@ -1,5 +1,5 @@
-from .models import Books
-from . import db
+from ..models.models import Books
+from ... import db
 
 def get_all_books():
     all_books = db.session.execute(db.select(Books).order_by(Books.id)).scalars().all()
