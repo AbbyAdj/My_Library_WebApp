@@ -7,7 +7,7 @@ bootstrap = Bootstrap5()
 db = SQLAlchemy()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, )
     app.config.from_object(Config)
     db.init_app(app)
     from .src.routes import main

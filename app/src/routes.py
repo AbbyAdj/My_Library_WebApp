@@ -2,12 +2,13 @@ import os
 from flask import request, render_template, url_for, redirect, Blueprint
 import requests
 
-
 from .utils.queries.get_queries import *
 from .utils.queries.insert_queries import *
 from .utils.queries.update_queries import *
 from .utils.queries.delete_queries import *
 from .forms import *
+
+from .utils.helper import home_route_books
 
 # TODO: When you click on a book, it should take you to the ebook.
 
@@ -22,19 +23,10 @@ def welcome():
 @main.route("/home/", methods=["GET"])
 def home():
     button_pressed = request.args.get("button")
-    books = []
-    if button_pressed == "completed":
-        books = get_completed_books()
-    elif button_pressed == "ongoing":
-        books = get_ongoing_books()
-    elif button_pressed == "no_comment":
-        books = get_disliked_books()
-    elif button_pressed == "all_books":
-        books = get_all_books()
+    books = home_route_books(button_pressed)
     # else:
     #     return redirect(url_for("main.welcome"))
     return render_template("home.html", books=books)
-    # return "Hi"
 
 @main.route("/add", methods=["GET", "POST"])
 def add_book():
