@@ -3,7 +3,10 @@ from flask import request, render_template, url_for, redirect, Blueprint
 import requests
 
 
-from .utils.methods import *
+from .utils.queries.get_queries import *
+from .utils.queries.insert_queries import *
+from .utils.queries.update_queries import *
+from .utils.queries.delete_queries import *
 from .forms import *
 
 # TODO: When you click on a book, it should take you to the ebook.
@@ -14,10 +17,9 @@ main = Blueprint("main", __name__)
 @main.route("/", methods=["GET"])
 def welcome():
     # TODO: Sorted by their ratings, show the top 3 or 4 books on the homepage before the buttons
-
     return render_template("index.html")
 
-@main.route("/home/")
+@main.route("/home/", methods=["GET"])
 def home():
     button_pressed = request.args.get("button")
     books = []
@@ -62,7 +64,7 @@ def user_add_book():
     if form.validate_on_submit():
         if form.submit.data:
             new_data = {field.name: field.data for field in form if form.data}
-            print(new_data)
+            # print(new_data)
             add_new_book(new_data, user_added=True)
             return redirect(url_for("main.welcome"))
         elif form.cancel.data:
