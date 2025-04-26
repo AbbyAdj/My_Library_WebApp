@@ -11,10 +11,10 @@ from wtforms.validators import DataRequired
 
 class EditBookForm(FlaskForm):
     title = StringField("What is the book title?", validators=[DataRequired()])
-    author = StringField("Who wrote the book?", description="Who wrote the book?", validators=[DataRequired()])
+    author_name = StringField("Who wrote the book?", description="Who wrote the book?", validators=[DataRequired()])
     synopsis = StringField("What is this book about?")
     number_of_pages = IntegerField("How many pages are in the book?", default=0)
-    genre = StringField("What is the book Genre (Only type the main genre)")
+    genre_name = StringField("What is the book Genre (Only type the main genre)", validators=[DataRequired()])
     isbn = StringField("What is the ISBN number?")
     completed = BooleanField("Are you done with the book?")
     given_up = BooleanField("Do you actually plan on completing this book?")
