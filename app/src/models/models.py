@@ -5,7 +5,7 @@ from ... import db
 class Authors(db.Model):
     __tablename__ = "authors"
     author_id = db.Column(db.Integer, primary_key=True)
-    author_name = db.Column(db.Integer, primary_key=True)
+    author_name = db.Column(db.Integer)
     # Foreign key relationships
     books = db.relationship("Books", backref="author")
 
@@ -15,7 +15,7 @@ class Authors(db.Model):
 class Books(db.Model):
     __tablename__ = "books"
     # CHANGE TO BOOK_ID INSTEAD OF ID
-    book_id = db.Column(db.Integer, primary_key=True)
+    book_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("authors.author_id"), nullable=False)
     synopsis = db.Column(db.Text, nullable=True)
